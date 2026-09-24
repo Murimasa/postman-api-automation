@@ -1,50 +1,86 @@
 # 🚀 Restful Booker API Automation Framework
 
 [![API Regression Pipeline (Newman)](https://github.com/Murimasa/postman-api-automation/actions/workflows/newman.yml/badge.svg)](https://github.com/Murimasa/postman-api-automation/actions/workflows/newman.yml)
+[![Postman](https://img.shields.io/badge/Postman-v10+-orange?logo=postman&logoColor=white)](https://www.postman.com/)
+[![Newman](https://img.shields.io/badge/CLI-Newman-FF6C37?logo=npm&logoColor=white)](https://learning.postman.com/docs/collections/using-newman-cli/command-line-integration-with-newman/)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/features/actions)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Автоматизированный тестовый фреймворк для сквозного тестирования API сервиса **Restful Booker** с использованием **Postman**, **Newman** и **GitHub Actions**.
-
----
-
-## 📌 Архитектура и возможности
-
-- **End-to-End CRUD цикл**: Проверка полного жизненного цикла сущности бронирования (`Create` -> `Read` -> `Update` -> `Delete`) с динамической передачей параметров между запросами.
-- **Data-Driven Testing (DDT)**: Параметризованное создание сущностей из внешнего набора данных без использования коммерческих ограничений Postman Runner.
-- **Динамическое управление состоянием**: Автоматический сбор и передача токенов авторизации через заголовки `Cookie` и извлечение динамических ID (`bookingid`).
-- **Расширенная валидация**: Проверка статус-кодов, соответствия JSON-схемы, значений полей в payload и ответов сервера.
-- **Интерактивные HTML-отчеты**: Визуализация результатов каждого запуска через дашборд `newman-reporter-htmlextra`.
-- **CI/CD Автоматизация**: Изолированные шаги сборки, запуск тестов на Ubuntu runner и публикация артефактов при каждом коммите и пулл-реквесте.
+An end-to-end automated testing suite for the **Restful Booker API** service, built using **Postman**, executed headless via **Newman**, and orchestrated in an automated **GitHub Actions CI/CD pipeline** with rich HTML reporting.
 
 ---
 
-## 🗂 Структура проекта
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Project Architecture](#-project-architecture)
+- [Prerequisites](#-prerequisites)
+- [Local Execution](#-local-execution)
+- [CI/CD & HTML Test Reports](#-cicd--html-test-reports)
+- [Test Strategy & Verification](#-test-strategy--verification)
+
+---
+
+## 🔍 Overview
+
+This repository demonstrates enterprise-grade API regression testing and test data management. It resolves common Postman automation challenges such as environment state isolation, dynamic token extraction, and free-tier Data-Driven Testing (DDT) without commercial license lock-in.
+
+---
+
+## ✨ Key Features
+
+- **Full Lifecycle E2E CRUD Coverage**: Validates state progression (`Ping` -> `Auth` -> `Create` -> `Read` -> `Update` -> `Delete`).
+- **Data-Driven Testing (DDT)**: Parameterized data iteration driven by external JSON datasets (`data/testdata.json`), executed locally and in CI without paid Postman runner limitations.
+- **Dynamic State Management**: Inter-request variable passing (`token` injection via headers and automatic storage of generated `booking_id`).
+- **Rich Dashboard Reporting**: Automated report generation with interactive drill-down views using `newman-reporter-htmlextra`.
+- **Headless CI/CD Pipeline**: GitHub Actions workflow running on `ubuntu-latest`, validating both CRUD workflows and parameterized suites in isolated jobs.
+
+---
+
+## 📁 Project Architecture
 
 ```text
 postman-api-automation/
 ├── .github/
 │   └── workflows/
-│       └── newman.yml          # CI/CD пайплайн для GitHub Actions
+│       └── newman.yml          # GitHub Actions CI/CD regression pipeline
 ├── collections/
 │   └── Restful Booker API Automation.postman_collection.json
 ├── environments/
 │   └── Restful-Booker-Prod.postman_environment.json
 ├── data/
-│   └── testdata.json           # Набор тестовых данных для DDT
-├── .gitignore
-└── README.md
+│   └── testdata.json           # External dataset for DDT execution
+├── .gitignore                  # Git exclusions for node_modules and reports
+└── README.md                   # Repository documentation
+```
 
-Prerequisites
-To run these tests locally, ensure you have:
+---
 
-Node.js (version 18 or higher)
+## ⚙️ Prerequisites
 
-Newman and the HTML Extra Reporter installed globally:
+Before running tests locally, ensure the following dependencies are installed:
 
-Bash
+- [Node.js](https://nodejs.org/) (`v18.x` or higher)
+- [npm](https://www.npmjs.com/) (`v9.x` or higher)
+
+Install **Newman** and the **HTML Extra Reporter** globally:
+
+```bash
 npm install -g newman newman-reporter-htmlextra
-💻 Running Tests Locally
-1. Execute Core CRUD Suite (excluding DDT)
-Bash
+```
+
+---
+
+## 💻 Local Execution
+
+Run the commands below from the root of the project directory.
+
+### 1. Execute Full E2E CRUD Suite
+
+Runs the entire CRUD lifecycle sequentially:
+
+```bash
 newman run "collections/Restful Booker API Automation.postman_collection.json" \
   -e "environments/Restful-Booker-Prod.postman_environment.json" \
   -n 1 \
@@ -56,27 +92,47 @@ newman run "collections/Restful Booker API Automation.postman_collection.json" \
   --folder "Delete Booking" \
   -r cli,htmlextra \
   --reporter-htmlextra-export newman-report/crud-report.html
-2. Execute Data-Driven Test Suite (DDT)
-Bash
+```
+
+### 2. Execute Data-Driven Test Suite (DDT)
+
+Runs parameterized booking creation across 3 independent dataset iterations:
+
+```bash
 newman run "collections/Restful Booker API Automation.postman_collection.json" \
   -e "environments/Restful-Booker-Prod.postman_environment.json" \
   -d "data/testdata.json" \
   --folder "DDT - Create Booking" \
   -r cli,htmlextra \
   --reporter-htmlextra-export newman-report/ddt-report.html
-📊 Viewing and Downloading Test Reports (CI/CD)
-Interactive HTML reports are generated automatically on every push or pull request to the main branch:
+```
 
-Navigate to the repository's Actions tab.
+---
 
-Select the latest successful run of API Regression Pipeline (Newman).
+## 📊 CI/CD & HTML Test Reports
 
-Scroll down to the Artifacts section at the bottom of the page.
+Every `push` or `pull_request` triggers the automated pipeline configured in `.github/workflows/newman.yml`.
 
-Download the newman-html-reports archive.
+### How to Access Generated Reports:
 
-Extract the ZIP archive and open the HTML files in any browser:
+1. Open the [**Actions**](https://github.com/Murimasa/postman-api-automation/actions) tab of this repository.
+2. Select the latest workflow run: **`API Regression Pipeline (Newman)`**.
+3. Scroll down to the **Artifacts** section at the bottom of the page.
+4. Download the **`newman-html-reports`** archive.
+5. Extract the `.zip` archive and open the files in any modern web browser:
+   - `crud-report.html`: Detailed assertions, timing metrics, and payloads for the primary CRUD flow.
+   - `ddt-report.html`: Iteration breakdown showing each dataset record evaluated.
 
-crud-report.html — Full request/response inspection for the end-to-end CRUD suite.
+---
 
-ddt-report.html — Per-iteration execution breakdown for parameterized booking creation.
+## 🧪 Test Strategy & Verification
+
+| Step | HTTP Method | Endpoint | Primary Assertion |
+| :--- | :--- | :--- | :--- |
+| **Health Check** | `GET` | `/ping` | `201 Created` server readiness check |
+| **Auth** | `POST` | `/auth` | Token issued (`200 OK`) and stored in runtime environment |
+| **Create Booking** | `POST` | `/booking` | `200 OK`, JSON schema validated, `bookingid` captured |
+| **Read Booking** | `GET` | `/booking/{{booking_id}}` | Data integrity matched with created record |
+| **Update Booking** | `PUT` | `/booking/{{booking_id}}` | Full payload update verified with authorized cookie |
+| **Delete Booking** | `DELETE` | `/booking/{{booking_id}}` | `201 Created` resource removal verification |
+| **DDT Iterations** | `POST` | `/booking` | Values matched against external JSON records across iterations |
