@@ -1,0 +1,278 @@
+{
+  "info": {
+    "_postman_id": "b0b86f85-4bd6-4af7-bd24-48e47374927c",
+    "name": "Restful Booker API Automation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "16239169"
+  },
+  "item": [
+    {
+      "name": "Ping / HealthCheck",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {\r\n    pm.response.to.have.status(201);\r\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/ping",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "ping"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - Create Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// 1. Проверяем успешный статус ответа 200 OK\r\npm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. Проверяем, что в ответе пришёл токен и сохраняем его в Environment\r\npm.test(\"Token is generated and saved\", function () {\r\n    const jsonData = pm.response.json();\r\n\r\n    // Проверка, что поле 'token' существует и не пустое\r\n    pm.expect(jsonData).to.have.property(\"token\");\r\n    pm.expect(jsonData.token).to.be.a(\"string\").and.not.empty;\r\n\r\n    // Сохраняем значение токена в переменную окружения 'token'\r\n    pm.environment.set(\"token\", jsonData.token);\r\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"password123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// 1. Verify successful resource creation status code\r\npm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. Parse response, validate payload structure and save bookingid\r\npm.test(\"Booking is created and bookingid is stored\", function () {\r\n    const responseJson = pm.response.json();\r\n\r\n    // Verify booking ID presence and type\r\n    pm.expect(responseJson).to.have.property(\"bookingid\");\r\n    pm.expect(responseJson.bookingid).to.be.a(\"number\");\r\n\r\n    // Verify nested booking details match request payload\r\n    pm.expect(responseJson.booking.firstname).to.eql(\"Jim\");\r\n    pm.expect(responseJson.booking.lastname).to.eql(\"Brown\");\r\n    pm.expect(responseJson.booking.totalprice).to.eql(111);\r\n    pm.expect(responseJson.booking.depositpaid).to.be.true;\r\n\r\n    // Persist bookingid into environment for downstream requests\r\n    pm.environment.set(\"booking_id\", responseJson.bookingid);\r\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"firstname\": \"Jim\",\r\n    \"lastname\": \"Brown\",\r\n    \"totalprice\": 111,\r\n    \"depositpaid\": true,\r\n    \"bookingdates\": {\r\n        \"checkin\": \"2026-01-01\",\r\n        \"checkout\": \"2026-01-10\"\r\n    },\r\n    \"additionalneeds\": \"Breakfast\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/booking",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "booking"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Booking by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// 1. Verify status code\r\npm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. Validate response schema and accurate entity data\r\npm.test(\"Booking details match created entity\", function () {\r\n    const jsonData = pm.response.json();\r\n\r\n    pm.expect(jsonData.firstname).to.eql(\"Jim\");\r\n    pm.expect(jsonData.lastname).to.eql(\"Brown\");\r\n    pm.expect(jsonData.totalprice).to.eql(111);\r\n    pm.expect(jsonData.depositpaid).to.be.true;\r\n    pm.expect(jsonData.bookingdates.checkin).to.eql(\"2026-01-01\");\r\n    pm.expect(jsonData.bookingdates.checkout).to.eql(\"2026-01-10\");\r\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/booking/{{booking_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "booking",
+            "{{booking_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Booking (PUT)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// 1. Verify status code\r\npm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. Validate updated values\r\npm.test(\"Booking details successfully updated\", function () {\r\n    const jsonData = pm.response.json();\r\n\r\n    pm.expect(jsonData.firstname).to.eql(\"James\");\r\n    pm.expect(jsonData.lastname).to.eql(\"Bond\");\r\n    pm.expect(jsonData.totalprice).to.eql(999);\r\n    pm.expect(jsonData.depositpaid).to.be.false;\r\n    pm.expect(jsonData.additionalneeds).to.eql(\"Dry Martini\");\r\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"firstname\": \"James\",\r\n    \"lastname\": \"Bond\",\r\n    \"totalprice\": 999,\r\n    \"depositpaid\": false,\r\n    \"bookingdates\": {\r\n        \"checkin\": \"2026-06-01\",\r\n        \"checkout\": \"2026-06-15\"\r\n    },\r\n    \"additionalneeds\": \"Dry Martini\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/booking/{{booking_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "booking",
+            "{{booking_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// 1. Verify successful deletion status code\r\npm.test(\"Status code is 201 Created\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\n// 2. Validate response body confirmation text\r\npm.test(\"Response body confirms deletion\", function () {\r\n    pm.expect(pm.response.text()).to.include(\"Created\");\r\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/booking/{{booking_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "booking",
+            "{{booking_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DDT - Create Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// 1. Проверяем успешный статус ответа 200 OK\r\npm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. Сверяем созданную запись со значениями текущей итерации данных\r\npm.test(\"Booking matches iteration data\", function () {\r\n    const res = pm.response.json();\r\n\r\n    pm.expect(res.booking.firstname).to.eql(pm.iterationData.get(\"firstname\"));\r\n    pm.expect(res.booking.lastname).to.eql(pm.iterationData.get(\"lastname\"));\r\n    pm.expect(res.booking.totalprice).to.eql(pm.iterationData.get(\"totalprice\"));\r\n    pm.expect(res.booking.depositpaid).to.eql(pm.iterationData.get(\"depositpaid\"));\r\n    pm.expect(res.booking.additionalneeds).to.eql(pm.iterationData.get(\"additionalneeds\"));\r\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"firstname\": \"{{firstname}}\",\r\n    \"lastname\": \"{{lastname}}\",\r\n    \"totalprice\": {{totalprice}},\r\n    \"depositpaid\": {{depositpaid}},\r\n    \"bookingdates\": {\r\n        \"checkin\": \"{{checkin}}\",\r\n        \"checkout\": \"{{checkout}}\"\r\n    },\r\n    \"additionalneeds\": \"{{additionalneeds}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/booking",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "booking"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

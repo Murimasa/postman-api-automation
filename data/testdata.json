@@ -1,0 +1,29 @@
+﻿[
+  {
+    "firstname": "Sherlock",
+    "lastname": "Holmes",
+    "totalprice": 221,
+    "depositpaid": true,
+    "checkin": "2026-05-01",
+    "checkout": "2026-05-10",
+    "additionalneeds": "Tea"
+  },
+  {
+    "firstname": "John",
+    "lastname": "Watson",
+    "totalprice": 150,
+    "depositpaid": false,
+    "checkin": "2026-06-01",
+    "checkout": "2026-06-05",
+    "additionalneeds": "Newspaper"
+  },
+  {
+    "firstname": "Irene",
+    "lastname": "Adler",
+    "totalprice": 500,
+    "depositpaid": true,
+    "checkin": "2026-07-10",
+    "checkout": "2026-07-20",
+    "additionalneeds": "Secret file"
+  }
+]
